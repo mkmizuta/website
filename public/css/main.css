@@ -25,11 +25,11 @@ all my nav goodies
   background: gray;
 }
 
-#nav-title {
+#nav-title a {
+  text-decoration: none;
   background: black;
   color: white;
   float: left;
-  text-decoration: none;
   font-size: 20px;
   font-family: Arial;
   padding-top: 11px;
