@@ -1,0 +1,92 @@
+/*<style type="/css/main.css"*/
+
+
+
+body {
+  margin: 0px;
+  padding: 0px;
+}
+
+p {
+  font-family: Helvetica;
+
+}
+
+/* 
+==================
+all my nav goodies
+==================
+*/
+#nav-bar {
+  position: fixed;
+  height: 50px;
+  width: 100%;
+  top: 0;
+  background: gray;
+}
+
+#nav-title {
+  background: black;
+  color: white;
+  float: left;
+  text-decoration: none;
+  font-size: 20px;
+  font-family: Arial;
+  padding-top: 11px;
+  padding-left: 20px;
+  padding-right: 20px;
+  height:39px;
+}
+
+#menu ul {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+  float: left;
+  margin-top: 14px;
+}
+
+#menu ul li {
+  display: inline;
+}
+
+#menu ul li a {
+  text-decoration: none;
+  padding: 18px 15px;
+  color: black;
+  font-size: 15px;
+}
+
+#menu ul li a:hover {
+  background: black;
+  color: gray;
+}
+
+
+/* 
+============
+body goodies
+============
+*/
+
+#content {
+  margin-top: 50px;
+  padding: 25px;
+}
+
+
+/* 
+==============
+footer goodies
+==============
+*/
+
+#footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: gray;
+  font-size: 12px;
+  font-style: italic;
+  padding: 5px 20px;
+}

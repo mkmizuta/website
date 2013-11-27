@@ -6,5 +6,8 @@ class MyApp < Sinatra::Base
     erb :index
   end
 
+  get "/contact" do
+    erb :contact
+  end
 end
 
