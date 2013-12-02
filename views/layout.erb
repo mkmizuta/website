@@ -7,42 +7,42 @@
     </title>
   </head>
   <body>
-    <div id='nav-bar'>
-      <div id='nav-title'>
-        <a href="/">::mizuta::</a>
-      </div>
-      <div id='menu'>
-        <ul>
-          <li>
-            <a href="/about">about</a>
-          </li>
-          <li>
-            <a href="/portfolio">portfolio</a>
-          </li>
-          <li>
-            <a href="www.google.com">blog</a>
-          </li>
-          <li>
-            <a href="/contact">contact</a>
-          </li>
-        </ul>
-      </div>
+    <div id='menu'>
+      <ul>
+        <li>
+          <a href="/" style="color:black">:: melinda mizuta ::</a>
+        </li>
+        <li>
+          <a href="/about">about</a>
+        </li>
+        <li>
+          <a href="/portfolio">portfolio</a>
+        </li>
+        <li>
+          <a href="/blog">blog</a>
+            <ul>
+              <% @sorted_posts.each do |post| %>
+                <li><a href="/blog/<%= post %>"><%= if post.size > 15 then post[0...15]+"..." else post end %></a></li>
+              <% end %>
+            </ul>
+        </li>
+        <li>
+          <a href="/contact">contact</a>
+        </li>
+      </ul>
     </div>
 
     <div id='content'>
-      <% @posts.each do |post| %>
-        <a href="/blog/<%= post %>"><% post %></a>
-      <% end %>
-
       <%= yield %>
-    </div>
 
-    <div id='footer'>
-      Copyright © 2013 Melinda Mizuta. All rights reserved.
+      <div id='footer'>
+        <hr>
+        <a href="http://github.com/mkmizuta"><img src="images/github.png" alt="Find me on GitHub" width="30"></a>
+        <a href="http://www.linkedin.com/pub/melinda-mizuta/7/5b5/365"><img src="images/linkedin.png" alt="Find me on Linkedin" width="30"></a>
+        <a href="https://twitter.com/mkmizuta"><img src="images/twitter.png" alt="Find me on Twitter" width="30"></a>
+        <br />
+        <div style="margin-top:20px">Copyright © 2013 Melinda Mizuta. All rights reserved.</div>
+      </div>
     </div>
-
   </body>
-
-
-
 </html>
