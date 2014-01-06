@@ -1,0 +1,41 @@
+date: 2013-12-13
+
+<h1>Regular expressions</h1>
+<p>
+  Guest lecturer <a href="http://www.nellshamrell.com">Nell Shamrell</a> shared her expertise on <strong>regular expressions</strong>.  And now I’ll share with you.
+</p>
+<p>
+  <strong>Regular expressions</strong> are patterns.  And strings are either a part of that pattern or they’re not.  We use <strong>regular expressions</strong> to test, extract and change strings.
+  <ul>
+    <li>Test a string to see if it matches your pattern.</li> 
+    <li>Extract a (part) string that matches your pattern.</li> 
+    <li>Change a string, replacing parts that match your pattern with other text.</li>
+  </ul>
+  If the string or the part of a string you’re testing matches, it returns a number that indicates the start of the character placement that the match can be found.  If there isn’t a match, then it returns nil.
+</p>
+<p>
+  So when would we test, extract or change a string?
+</p>
+<p>
+  When testing a string, we’re validating to see if what we’re testing is true or false.  If you require a user to submit an email address, you can use a <strong>regular expression</strong> to validate their submission.
+
+  <code>\w+@\w+\.\w+</code> 
+
+  where <code>\w</code> stands for any word character; same as <code>[a-zA-Z0-9_]</code> and <code>+</code> means that a character must appear one or more times.
+</p>
+<p>
+  An example of when you’d want to use a regex to change a string is when your string contains information that should be kept secured or confidential.  If we have a credit card number, we can use regex to change all but the last four digits to #.
+</p>
+<p>
+  <pre><code>
+  credit_card = “1234 5678 9012 3456”
+  
+  sub(/regex/, “text”) where sub is the method used to substitute text.
+  
+  safer_credit_card = credit_card.sub(/\d{4} \d{4} \d{4} /, “XXXX XXXX XXXX ”)
+  
+  => “XXXX XXXX XXXX 3456"</code></pre>
+</p>
+<p>
+  You’ll notice that this regular expression assumes that the credit card number has 16 digits with a space after every four numbers.  If the credit card wasn’t formatted that way, this regex wouldn’t work.  We would remedy that by writing more regular expressions to validate the format, etc. 
+</p> 

@@ -1,6 +1,31 @@
 date: 2013-11-22
 
-<h1>About databases</h1>
+<h1>Applications have brains</h1>
 <p>
-  Come back soon for a fantastic database recap.
+  Rails’ architecture consists of three parts: <code>controllers</code> (ActionController), <code>models</code> (ActiveRecord) and <code>views</code> (ActionView). <code>Views</code> is the presentation layer, and are used to write the code that users see and interact with (think HTML, CSS and Javascript). <code>Models</code> store data and access databases; models send that information to the controller.  <code>Controllers</code> are the brains of the Rails application, and are the main focus of this post. 
+</p>
+<p>
+  As the brains of an app, <code>controllers</code> process incoming data from the view/request, collect data from the model (via database or params) and then returns it to the view for the user to see.
+</p>
+  Each controller you create will inherit from <code>ApplicationController</code> (which inherits from <code>ActionController::Base</code>). All the methods stored in <code>ApplicationController</code> will be inherited by your other controllers, and helps your code stay DRY. 
+</p>
+<p>
+  For our recipe cookbook app, we used:
+</p>
+<p>
+  <pre><code>
+  class ApplicationController &#60; ActionController::Base
+ 
+    protect_from_forgery with: :exception
+
+    before_action :get_cookbooks
+
+    def get_cookbooks
+      @allcookbooks = Cookbook.all
+    end
+  end
+  </code></pre>
+</p>
+<p>
+  Our other <code>controllers</code>, cookbooks, gadgets, ingredients, recipes and welcome, inherited the <code>get_cookbooks</code> method, along with the controller filters, <code>protect_from_forgery</code> and <code>before_action</code>.  The <code>before</code> filter tells our app to run <code>get_cookbooks</code> first before any other action.
 </p>

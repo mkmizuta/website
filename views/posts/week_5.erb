@@ -3,6 +3,85 @@ date: 2013-11-27
 <h1><code>&#60;%= yield %></code></h1>
 <p>
   While using Sinatra, I learned about <code>&#60;%= yield %></code>.
+</p>
+<p>
+  <code>&#60;%= yield %></code> is fabulous because it’s a dynamic placeholder.  Instead of typing (or even copy/paste) the header and footer on each page of your website, create a <code>layout.erb</code> for your code.  For content you don’t want on every page, create a div container and use <code>&#60;%= yield %></code>.
+</p>
+<p>
+  Each page on your site will execute the code used in layout.erb, but when it reaches <code>&#60;%= yield %></code>, it will only show the respective copy for that page that you’ll write in a separate <code>.erb</code> file.
+</p>
+<p>
+  Since you’re reading this in my blog post, conveniently found on my site, here’s what my <code>layout.erb</code> looks like, followed by my <code>blog.erb</code>.
+</p>
+<p>
+  <pre><code>
+  &#60;!DOCTYPE html>
+    &#60;html>
+      &#60;head>
+        &#60;link  href="/css/main.css" media="all" rel="stylesheet">
+        &#60;title>
+          Melinda Mizuta
+        &#60;/title>
+      &#60;/head>
+      &#60;body>
+        &#60;div id='menu'>
+          &#60;ul>
+            &#60;li>
+              &#60;a href="/" style="color:black">:: melinda mizuta ::&#60;/a>
+            &#60;/li>
+            &#60;li>
+              &#60;a href="/about">about&#60;/a>
+            &#60;/li>
+            &#60;li>
+              &#60;a href="/portfolio">portfolio&#60;/a>
+            &#60;/li>
+            &#60;li>
+              &#60;a href="/blog">blog&#60;/a>
+                &#60;ul>
+                  &#60;% @sorted_posts.each do |post| %>
+                    &#60;li>&#60;a href="/blog/&#60;%= post %>">&#60;%= if post.size > 15 then post[0...15]+"..." else post end %>&#60;/a>&#60;/li>
+                  &#60;% end %>
+                &#60;/ul>
+            &#60;/li>
+            &#60;li>
+              &#60;a href="/contact">contact&#60;/a>
+            &#60;/li>
+          &#60;/ul>
+        &#60;/div>
 
-  More details to follow.
+        &#60;div id='content'>
+          &#60;%= yield %>
+
+          &#60;div id='footer'>
+            &#60;hr>
+            &#60;a href="http://github.com/mkmizuta">&#60;img src="/images/github.png" alt="Find me on GitHub" width="30">&#60;/a>
+            &#60;a href="http://www.linkedin.com/pub/melinda-mizuta/7/5b5/365">&#60;img src="/images/linkedin.png" alt="Find me on Linkedin" width="30">&#60;/a>
+            &#60;a href="https://twitter.com/mkmizuta">&#60;img src="/images/twitter.png" alt="Find me on Twitter" width="30">&#60;/a>
+            &#60;br />
+            &#60;div style="margin-top:20px">Copyright © 2013 Melinda Mizuta. All rights reserved.
+            &#60;/div>
+          &#60;/div>
+        &#60;/div>
+      &#60;/body>
+    &#60;/html>
+  </code></pre>
+</p>
+<p> 
+  And now for my <code>blog.erb</code> page, where each @post_content has its own page:
+</p>
+<p>
+  <pre><code>
+    &#60;h1>
+      What I'm reading, learning and hearing that's changing my world:
+    &#60;/h1>
+    &#60;p>
+      &#60;%= @post_content %>
+    &#60;/p>
+  </pre></code>
+</p>
+<p>
+  Now doesn’t that just make you smile?  
+</p>
+<p>
+  <code>&#60;%= yield %></code> is advantageous because it’s DRY. And DRY code minimizes chances of bugs and is much easier to maintain. 
 </p>
