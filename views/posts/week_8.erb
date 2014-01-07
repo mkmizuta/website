@@ -1,3 +1,118 @@
 date: 2013-12-20
 
-<h1> </h1>
+<h1>Meldoku</h1>
+<p>
+  My mother-in-law wanted spiral-bound sudoku books for Christmas because the pages are easier to turn.  I thought, how fun would it be to build a Sudoku app so that she could use it and see what I’m learning thanks to Ada.  She wouldn't have to turn a page!  So that’s what I did during winter break.
+</p>
+<p>
+  Well, it was definitely more challenging than I anticipated. The majority of the effort was figuring out if a player's solution is valid. To be valid, every number from 1-9 must be present in every row, column and block. So the first method I wrote was <code>check_line(line)</code> which takes in an array and checks if every number 1-9 is present. The second method, <code>board_is_valid</code> takes a 9x9 array and iterates through each row, then through each column and finally through each block before passing it through the first <code>check_line</code> method. Here are some highlights:  
+</p>
+<p>
+  <pre><code>
+   def check_line(line)
+      if line.count != 9
+        return false
+      end
+
+      (1..9).each { |number| 
+        if !line.include? number.to_s
+          return false
+        end
+      }
+      return true
+    end
+  </code></pre>
+</p>
+<p>
+  If the board does have nine spaces for numbers, or if the line doesn't include 1-9, it will return false.
+</p>
+<p>
+  <pre><code>
+    def board_is_valid
+      if self.board.count != 9
+        errors.add(:board, "BOARD ERROR")
+        return
+      end
+  </code></pre>
+</p>
+<p>
+  If the board doesn’t have nine spaces for numbers, it will return an error. 
+</p>
+<p>
+  <pre><code>
+    self.board.each { |line|
+      if !line.kind_of?(Array) || line.count != 9
+        errors.add(:board, "BOARD ERROR")
+        return
+      end
+    }
+  </code></pre>
+<p>
+  <code>self.board.each</code> checks to see if each line is not an Array or if it doesn’t have nine spaces for numbers.  If either of those return true, the game returns an error. These errors shouldn't occur because they aren't influenced by the player's actions. 
+</p>
+<p>
+  <pre><code>
+    (0..8).each { |iterator|
+      if !check_line(self.board[iterator])
+        errors.add(:board, "Check row " + (1 + iterator).to_s + " again!")
+      end
+
+      if !check_line(self.board.transpose[iterator])
+        errors.add(:board, "Check column " + (1 + iterator).to_s + " again!")
+      end
+    }
+  </code></pre>
+</p>
+<p>
+  <code>(0..8).each</code> iterates each row and runs the <code>check_line</code> method.  If <code>!check_line</code> returns true (meaning that there weren’t nine numbers in the array), then the game returns an error.  It then runs the same method to check if the numbers 1-9 are there in the columns, but to do that, it has to first transpose the columns to rows.  Transposing looks like this:
+</p>
+<p>
+  <pre><code>
+    1  2  3
+    4  5  6
+    7  8  9
+  </code></pre>
+</p>
+<p>
+  where the rows are <code>[1, 2, 3], [4, 5, 6], [7, 8, 9]</code><br>
+  it transposes the columns so that the rows to be used to check the value entered are 
+  <pre><code>
+    [1, 4, 7], 
+    [2, 5, 8], 
+    [3, 6, 9]
+  </code></pre>
+  and <code>.flatten</code> makes it <code>[1, 4, 7, 2, 5, 8, 3, 6, 9]</code>.
+</p>
+<p>
+  <pre><code>
+    (0..6).step(3) do |r|
+      (0..6).step(3) do |c|
+        if !check_line self.board[r..r+2].transpose[c..c+2].flatten
+          errors.add(:board, "Check block " + "row " + ((r/3) + 1).to_s + " column " + ((c/3) + 1).to_s + " again!")
+        end
+      end
+    end
+
+    return true
+  end
+end 
+  </code></pre>
+</p>
+<p>
+  <pre><code>
+    (0..6).step(3) do |r| 
+     (0..6).step(3) do |c|
+  </code></pre>
+</p>
+<p>
+  checks to see if the block is valid on board, where block is defined as every 3x3 squares (3 rows, 3 columns).  Because Ruby starts counting at index or 0, we'd use <code>(0..6)</code> as the range, with .step(3) resulting with increments of three. The last three columns are identified by default after identifying the second set of 3x3. So the first time it goes through, it starts at 0, then to 3, then to 6 (because of .step(3)).
+</p>
+<p>
+  To identify the block, the method starts with the rows, <code>r</code>, which equals 0,  divides by 3 (because of the .step(3) iteration), and adds 1.  It converts that to a string with <code>.to_s</code> since it's an error message, and adds that value to the column which was determined by <code>((c/3) + 1).to_s</code> (after having first transposed it).
+</p>
+
+
+
+
+
+
