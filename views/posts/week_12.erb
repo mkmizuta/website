@@ -1,0 +1,173 @@
+date: 2014-01-24
+
+<h1>Adding RSS Feeds</h1>
+<p>
+  For two weeks, we're working in teams of four on a social media aggregator.
+</p>
+<p>
+  In addition to searching and adding Twitter and Tumblr APIs, our site needs to allow users to add RSS feeds.  Using the Feedzirra gem, here's what I came up with:
+</p>
+<p>
+  On the homepage, I created a form that says "Add a Feed".  The user then types in a <code>rss_url</code> and submits it.  
+</p>
+  <pre><code>
+     &#60;%= form_tag('/rss/create', method: :get, class: "navbar-form navbar-left", role: "search") do %>
+      &#60;div class="form-group">
+        &#60;%= text_field_tag :rss_url, "", placeholder: "Add a Feed", class: "form-control" %>
+      &#60;/div>
+      &#60;%= submit_tag 'Go', class: "btn btn-default" %>
+    &#60;% end %>
+  </code></pre>
+<p>
+  Because of <code>/rss/create</code>, it looks in the <code>RssController</code>.  
+</p>
+<p>
+  In <code>RssController</code>, <code>def create</code> creates a new instance of <code>Rssfeed</code> and assigns the <code>.uid</code> as the <code>current_user</code> (defined in <code>sessions</code>). This new object is then given the <code>rss_url</code> that it received from <code>params</code> (through the search form).
+</p>
+<p>
+  The <code>Rssfeed</code> model requires the <code>feedzirra</code> gem, and then runs the <code>valid_feed</code> method.
+</p>
+<p>
+  <pre><code>
+  class Rssfeed &#60; Feed
+    require 'feedzirra'
+    validate :valid_feed
+    
+    def valid_feed
+      if Feedzirra::Feed.fetch_and_parse(self.rss_url).class == Fixnum
+        errors.add(:rss_url, "Invalid feed URL. Please try again.")
+      end
+    end
+
+    def update_posts
+      feed = Feedzirra::Feed.fetch_and_parse(self.rss_url)
+      feed.sanitize_entries!
+      feed.entries.each do | entry |
+        if Post.where("title = ? AND post_date = ?", entry.title, entry.published).count == 0
+
+          Post.create!(
+            :title     => entry.title,
+            :author    => entry.author, 
+            :post_date => entry.published,
+            :message   => entry.summary,
+            :url       => entry.url
+            )
+        end
+      end
+    end
+  end
+  </code></pre>
+</p>
+<p>
+  <h4>A closer look at <code>valid_feed</code></h4>
+  <pre><code>
+    def valid_feed
+      if Feedzirra::Feed.fetch_and_parse(self.rss_url).class == Fixnum
+        errors.add(:rss_url, "Invalid feed URL. Please try again.")
+      end
+    end
+  </code></pre>
+
+  <code>valid_feed</code> takes an <code>rss_url</code> and asks for its <code>class</code>.  If the class return as a <code>Fixnum</code>, then it means something failed (because of a bad URL, etc) and it calls the error message.  When using the Feedzirra gem, valid feeds return <code>Feedzirra::Parser::RSSFeedBurner</code> (which isn't a <code>Fixnum</code>).  
+</p>
+<p>
+  If this instance is saved, then it calls on a method in the <code>rssfeed</code> model called <code>update_posts</code> and redirects to <code>:root</code> (which is the homepage).
+</p>
+<p>
+  <pre><code>
+  class RssController &#60; ApplicationController
+  require_dependency 'feed'
+
+  def index
+  end
+
+  def create
+    @new_feed = Rssfeed.new
+    @new_feed.uid = current_user
+    @new_feed.rss_url = params[:rss_url]
+
+    if @new_feed.save
+      @new_feed.update_posts
+      redirect_to :root
+    else
+      render "sessions/show"
+    end
+  end
+end
+ </code></pre>
+</p>
+<p>
+  <pre><code>
+    def update_posts
+      feed = Feedzirra::Feed.fetch_and_parse(self.rss_url)
+      feed.sanitize_entries!
+      feed.entries.each do | entry |
+        if Post.where("title = ? AND post_date = ?", entry.title, entry.published).count == 0
+
+          Post.create!(  
+            :title     => entry.title,
+            :author    => entry.author, 
+            :post_date => entry.published,
+            :message   => entry.summary,
+            :url       => entry.url
+            )
+        end
+      end
+    end
+  </code></pre>
+  <code>update_posts</code> creates a local variable called <code>feed</code> by identifying it with the <code>rss_url</code> and sanitizes all the entries in place. For each of those entries, it checks to see if there's a <code>Post</code> (based on the <code>Post</code> table created) with that title and published date.  If the answer equals 0, (in other words, no), then it creates that post with <code>Post.create!</code> and it saves the Post's title, author, date posted, summary and url (all indicated with Feedzirra's <code>entry</code> method).
+</p>
+<p>
+  Here's what I have for the view page:
+  <pre><code>
+    &#60;% if !@new_feed.nil? &#38;&#38; @new_feed.errors.any? %>
+    &#60;div class= "alert alert-danger">
+      &#60;ul>
+        &#60;% @new_feed.errors.each do | attr, msg | %>
+        &#60;li>&#60;%= msg %>&#60;/li>
+        &#60;% end %>
+      &#60;/ul>
+    &#60;/div>
+    &#60;% end %>
+
+    &#60;% if @posts.any? %>
+    &#60;ul class= "media-list">
+    &#60;% @posts.order(post_date: :desc).each do | post | %>
+      &#60;li class= "media">
+        &#60;a class="pull-left" href="#">
+          &#60;img class="media-object" data-src="holder.js/64x64">
+        &#60;/a>
+        &#60;div class="media-body">
+          &#60;h4 class="media-heading">&#60;%= link_to post.title, post.url %>&#60;/h4>
+          &#60;h5>&#60;%= if post.author.nil? then "Unknown Author" else post.author end %>, 
+          &#60;%= post.post_date.to_formatted_s(:long_ordinal) %>&#60;/h5>
+          &#60;p>
+            &#60;%= strip_tags(post.message) %>
+          &#60;/p>
+        &#60;/div>
+      &#60;/li>
+    &#60;% end %>
+    &#60;/ul>
+    &#60;% else %>
+    &#60;div class="alert alert-info">
+     Search for users to grow your feed!
+    &#60;/div>
+    &#60;% end %>
+    </code></pre>
+</p>
+<p>
+  The first part <code>if !@new_feed.nil? &#38;&#38; @new_feed.errors.any?</code> says that if a <code>new_feed</code> exists and if there are any errors, then run the error message.
+</p>
+<p>
+  Otherwise, it continues and sees if there are any saved posts (<code>if @posts.any?</code>). If there are saved posts in the database, <code>@posts.order(post_date: :desc).each do | post |</code> calls the posts and orders them in descending order based on the <code>post_date</code>.
+  <br>
+  For each of those posts (because of <code>.each do | post |</code>), it will include the link to the post's url via the post's title. <code>link_to post.title, post.url %></code>
+  <br>
+  <pre><code>
+    &#60;%= if post.author.nil? then "Unknown Author" else post.author end %>, &#60;%= post.post_date.to_formatted_s(:long_ordinal) %>
+  </code></pre>
+  If the post's author doesn't exist, (if that field is nil), then it will be listed as "Unknown Author", otherwise, it will include the author and the date that the author posted.
+  <code>strip_tags(post.message)</code> removes the <code>html</code> tags and so that the post's message content is easier to read.
+</p>
+<p>
+  If there aren't any posts (remember, this started as a conditional if with <code>if @posts.any?</code>, then the user is invited to grow their feed.

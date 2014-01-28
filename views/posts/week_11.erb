@@ -1,0 +1,206 @@
+date: 2014-01-17
+
+<h1>You can learn a lot from analytics (and from having to learn how to display it)</h1>
+<p>
+  This week, we learned about displaying analytics with Javascript, JQuery and Canvas by special guest lecturer <a href="http://www.jefflembeck.com">Jeff Lembeck</a>. For our assignment, we had to build an analytics dashboard to an existing Rails app.
+</p>
+<p>
+  I chose to build off of my Meldoku app (see <a href="http://melinda-mizuta.herokuapp.com/blog/week_8">Week 8)</a>. Instead of using gems to track user agent and other such info, I researched how rails handles request info and wrote a few methods by hand. Here’s how it works:
+</p>
+<p>
+  In the <code>ApplicationController</code>, I wrote one method, <code>log_page_view</code>.
+</p>
+<p>
+  <pre><code>
+    class ApplicationController &#60; ActionController::Base
+      protect_from_forgery with: :exception
+   
+      def log_page_view
+        PageView.create(
+          :referer     => request.referrer,
+          :session     => request.session_options[:id],
+          :ip_address  => request.remote_ip,
+          :user_agent  => request.env["HTTP_USER_AGENT"],
+          :created_at  => Time.current
+          )
+
+      end
+    end 
+  </code></pre>
+</p>
+<p>
+  <code>log_page_view</code> creates a <code>PageView</code> object using information contained in a rails request object (visit Ruby on Rails <a href://"http://guides.rubyonrails.org/action_controller_overview.html#the-request-object">Action Controller</a> and <a href://"http://api.rubyonrails.org/classes/ActionDispatch/Request.html">Action Dispatch Request</a> pages for more info). The data that seemed pertinent for this project was the following hash: <code>referer, session, ip_address, user_agent and created_at</code>. So each page on the Meldoku site tracks info about the <code>referer</code> (how the page was accessed), <code>session</code>, <code>ip address</code> (unique to the computer), <code>user agent</code> (the browser used, such as Chrome) and <code>created_at</code> (the date and time accessed).
+</p>
+<p>
+  In my <code>GamesController</code>, I added a <code>before_action</code> filter <code>:log_page_view</code> that will run before any of the <code>GamesController</code> actions do.
+</p>
+<p>
+  <pre><code>
+    class GamesController &#60; ApplicationController
+      before_action :log_page_view
+  </code></pre>
+</p>
+<p>
+  This <code>before_action</code> filter comes from the <code>ApplicationController</code>, and runs the <code>log_page_view</code> method which collects information about that respective <code>PageView</code>.
+</p>
+<p>
+  I created a new <code>PageViewsController</code> for the analytics dashboard.  This controller has one method, <code>index</code>.
+</p>
+<p>
+  <pre><code>
+    class PageViewsController &#60; ApplicationController
+
+      def index
+        @page_views = PageView.all
+      end
+    end 
+  </code></pre>
+</p>
+<p>
+  <code>index</code> creates an instance variable (called <code>@page_views</code>), that collects all instances of <code>PageView</code> created which all come from the <code>GamesController</code>.  Because the <code>before_action</code> filter is in the <code>GamesController</code>, it only records information from the pages accessed in that controller, rather than from all pages such as the dashboard (because only admin should have access to that page).
+</p>
+<p>
+  I created a new model called <code>page_views</code> to store the data collected from our <code>log_page_view</code> method.  
+</p>
+<p>
+  <pre><code>
+    create_table "page_views", force: true do |t|
+      t.text     "referer"
+      t.string   "session"
+      t.string   "ip_address"
+      t.string   "user_agent"
+      t.datetime "created_at"
+      t.datetime "updated_at"
+    end
+  </code></pre>
+</p>
+<p>
+  In <code>Views</code>, I created a new folder called <code>page_views</code>, along with an <code>index.html.erb</code> file.  Here’s how it works with the controllers and model.
+</p>
+<p>
+  <pre><code>
+    &#60;table style="padding:20px;width:auto;">
+      &#60;thead style="font-weight: bold;">
+      &#60;tr>
+        &#60;td># of Page Views&#60;/td>
+        &#60;td># of Unique Visitors&#60;/td>
+        &#60;td># of Visitors (defined as sessions)&#60;/td>
+        &#60;td># of Unique User Agents&#60;/td>
+      &#60;/tr>
+      &#60;/thead>
+      &#60;tr>
+        &#60;td>&#60;%= @page_views.count %>&#60;/td>
+        &#60;td id= “new">
+          &#60;%= @page_views.map { | array | array.ip_address }.uniq.count %>
+        &#60;/td>
+        &#60;td id = “return">&#60;%= @page_views.map { | array | array.session }.uniq.count %>&#60;/td>
+        &#60;td>
+          &#60;%= @page_views.map { | array | array.user_agent }.uniq.count %>
+          (
+            Chrome
+            &#60;span id="chrome">
+              &#60;%= @page_views.where("user_agent LIKE '%Chrome%'").count %>
+            &#60;/span>
+            Firefox
+            &#60;span id="firefox">
+              &#60;%= @page_views.where("user_agent LIKE '%Firefox%'").count %>
+            &#60;/span>
+            Safari
+            &#60;span id="safari">
+              &#60;%= @page_views.where("user_agent LIKE '%Safari%'").where.not("user_agent LIKE '%Chrome%'").count %>
+            &#60;/span>
+            Internet Explorer
+            &#60;span id="explorer">
+              &#60;%= @page_views.where("user_agent LIKE '%Explorer%'").count %>
+            &#60;/span>
+         )
+        &#60;/td>
+      &#60;/tr>
+    &#60;/table>
+</code></pre>
+</p>
+<p>
+  To create the table headings, I used:
+  <pre><code>
+    &#60;table style="padding:20px;width:auto;">
+      &#60;thead style="font-weight: bold;">
+      &#60;tr>
+        &#60;td># of Page Views&#60;/td>
+        &#60;td># of Unique Visitors&#60;/td>
+        &#60;td># of Visitors (defined as sessions)&#60;/td>
+        &#60;td># of Unique User Agents&#60;/td>
+      &#60;/tr>
+      &#60;/thead>
+  </code></pre>
+</p>
+<p>
+  This code formats the table header with # of Page Views, # of Unique Visitors, # of Visitors and # of Unique User Agents, in bold.
+</p>
+<p>
+  <code>&#60;td>&#60;%= @page_views.count %>&#60;/td></code> 
+  calculates the number of times a page in Meldoku (less the dashboard), was visited.
+</p>
+<p>
+  <code>
+    &#60;td id= "new">
+     &#60;%= @page_views.map { | array | array.ip_address }.uniq.count %>
+    &#60;/td>
+  </code>
+</p>
+<p>
+  <code>.map</code> turns one array (<code>@page_views</code>) into another array <code>| array |</code> where it finds the ip addresses because of <code>array.ip_addresses</code>. It then finds all the unique ip addressees (<code>.uniq</code>) and counts them (<code>.count</code>).
+  <br>
+  &#60;td id= "new"> links that result to the pie chart created in my JavaScript file.
+</p>
+<p>
+  <pre><code>
+    &#60;td id="return”>
+      &#60;%= @page_views.map { | array | array.session }.uniq.count %></td>
+    &#60;td>
+  </code></pre>
+</p>
+<p>
+  Similar to the method before it, <code>@page_views.map</code> takes an array (<code>@page_views</code>) and maps it into another array.  Because of <code>{ | array | array.session }</code>, it finds all the <code>sessions</code> in this new array. <code>.uniq</code> sorts those sessions so that there aren't any duplicates, and <code>.count</code> returns the number of unique sessions in the mapped array.
+</p>
+<p>
+  <pre><code>
+    &#60;td>
+      &#60;%= @page_views.map { | array | array.user_agent }.uniq.count %>
+      (
+        Chrome
+        &#60;span id="chrome">
+          &#60;%= @page_views.where("user_agent LIKE '%Chrome%'").count %>
+        &#60;/span>
+        Firefox
+        &#60;span id="firefox">
+          &#60;%= @page_views.where("user_agent LIKE '%Firefox%'").count %>
+        &#60;/span>
+        Safari
+        &#60;span id="safari">
+          &#60;%= @page_views.where("user_agent LIKE '%Safari%'").where.not("user_agent LIKE '%Chrome%'").count %>
+        &#60;/span>
+        Internet Explorer
+        &#60;span id="explorer">
+          &#60;%= @page_views.where("user_agent LIKE '%Explorer%'").count %>
+        &#60;/span>
+      )
+    &#60;/td>
+  </code></pre>
+</p>
+<p>
+  <code>@page_views.map { | array | array.user_agent }.uniq.count</code> turns the arrays in <code>@page_views</code> into a new array, where it calls the <code>.user_agent</code>.  Using the id in my Javascript file, it finds the <code>user_agents</code> that look like "Chrome", counts them (<code>.count</code>) and returns that value.  The code is the same for Firefox and Internet Explorer, but for Safari, I had to add a little more:
+
+  <pre><code>
+    Safari
+    &#60;span id="safari">
+      &#60;%= @page_views.where("user_agent LIKE '%Safari%'").where.not("user_agent LIKE '%Chrome%'").count %>
+    &#60;/span>
+  </code></pre>
+
+  <code>@page_views.where("user_agent LIKE '%Safari%'")</code> searches for instances where user_agent includes Safari.  <code>.where.not("user_agent LIKE '%Chrome%'").count</code> removes any instances of Chrome in that return.  This was necessary because Chrome is included in Safari <code>user_agent</code> data.
+</p>
+
+
+ 
+
+ 

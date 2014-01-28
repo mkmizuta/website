@@ -1,0 +1,32 @@
+date: 2014-01-10
+
+<h1>The Request Cycle</h1>
+
+<p>
+  This week, we focused on the request cycle, understanding what happens, where it happens and why, when a user types in a URL.  Here’s the rundown, with the user navigating to <code>/blog/10/edit</code> in their browser as an example:
+</p>
+<p>
+  So when the rails app recieves the incoming request, it matches to a route.  Routes says that <code>/blog/10/edit</code> looks like a <code>GET request</code> (an HTTP request path) for the <code>BlogsController</code> for an <code>Edit action</code> (an HTTP request method) and so sends the request to the <code>BlogsController</code>.  While in <code>BlogsController</code>, it checks for <code>before_action</code> filters and private controller methods where it found a <code>set_params</code> and this specific request for the object with <code>id 10</code>, which it finds in the blog Model and retrieves that respective data in <code>ActiveRecord</code>.
+</p>
+<p>
+  It then scans through the BlogController methods,  and finds <code>def edit</code> and runs the code for that method. Then <code>BlogController</code> sends it to views which turns <code>.erb</code> to <code>html</code> so that the user can see on the screen.
+</p>
+<p>
+  So what if the blog author edited the "title," "description" and "subject" fields in the edit form, and hits "submit?"  
+</p>
+<p>
+  To get there, a helper method (partial) found <code>_form.html.erb</code> so that the user can see the form and interact with it.  When the user pressed submit, it returned everything in the form to UPDATE action via the params hash.  UPDATE receives two major pieces out of params: [1] the id of the object we're editing so that it knows which model to update and [2] the updated fields from the specific model it came from.  In this case, "title," "description" and "subject."  
+</p>
+<p>
+  Now the blog post is updated in the post model (via PATCH/PUT request with an update action). <code>def update</code> in <code>BlogContoller</code> ran, and most likely will be routed to render the saved blog post page (blog/10).
+</p>
+
+
+
+
+
+
+
+
+
+
