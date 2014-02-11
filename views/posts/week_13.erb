@@ -1,0 +1,79 @@
+date: 2014-02-07
+
+<h1>Focus now...</h1>
+
+<p>
+  One of our goals for our social media aggregator site was to create a link that moved the cursor and highlighted the respective search bar when no match was found.  I used JavaScript to make that happen.         
+</p>
+<p>
+  Though we had three search bars, one for Twitter, Tumblr and <a href= "http://melinda-mizuta.herokuapp.com/posts/week_12">RSS feeds</a> respectively, I only needed one method for the Javascript feature.
+</p>
+<p>
+  <pre><code>
+    function textBoxFocus(textbox_id) {
+         document.getElementById(textbox_id).focus();
+    } 
+  </code></pre>
+</p>
+<p>
+  <code>textBoxFocus</code> is what I called the function and <code>(textbox_id)</code> is the argument that captures the ID of the desired text box that we want to focus on. <code>.focus</code> is the Javascript method that does the heavy-lifting for us.
+</p>
+<p>
+  To call that method for each respective field, I used HTML.  
+</p>
+<p>
+  For RSS Feeds:
+  <pre><code>
+    &#60;% if @rss_feed.class == Fixnum %>
+      &#60;div class= "alert alert-info">
+        Invalid RSS URL feed. &#60;a onclick="textBoxFocus('uid')">
+                            Please try again.&#60;/a>
+      &#60;/div>
+    &#60;% else %> 
+  </code></pre>
+</p>
+<p>
+  <code>&#60;% if @rss_feed.class == Fixnum %></code> says that if the rss url that the user entered is a fixnum, then call an error message.  That functionality is referenced in the gem that we used to connect to RSS feeds.  When the user clicks on “please try again,” it calls the javascript method <code>.focus</code> and places the focus in the params, ‘uid’, which is the ID of the RSS text box that we’ll be focusing on.
+</p>
+<p>
+  <code>&#60;a onclick ></code> is the javascript method that triggers the method once the user clicks the link (hence, on click :).
+</p>
+<p>
+  For Tumblr and Twitter, it’s a similar setup except the logic is in the controller (as opposed to the view for RSS) and is passed to the views via a notice.  This required using the rails method <code>.html_safe</code>which among other things, makes the string interpreted as safe html instead of just a raw string. 
+</p>
+<p>
+  <pre><code>
+  class TumblesController &#60; ApplicationController
+
+    def search
+      @search = params[:search].split(" ").join("-")
+      @tumbles = TumblrFeed.client.posts(@search)
+      if @tumbles == {"status"=>404, "msg"=>"Not Found"}
+        redirect_to "/", notice: "No match found.  &#60;a onclick=\"textBoxFocus('search')\">
+            Please search again.&#60;/a>".html_safe
+      else
+        @title = @tumbles["blog"]["title"]
+        @url   = @tumbles["blog"]["url"]
+      end
+    end
+  end 
+  </code></pre>
+</p>
+<p>
+  Tumblr’s <code>def search</code> method takes the user’s search params and replaces any spaces with a <code> - </code> and assigns it <code>@search</code>.  It then calls the Tumblr api client and searches for any matches from <code>@search</code>.  If their aren’t any matches, it calls the error and Javascript’s focus method.  
+</p>
+<p>
+  And for Twitter:
+  <pre><code>
+   def search
+      @users = TwitterFeed.client.user_search(params[:user_name])
+      if @users.empty?
+        redirect_to "/", notice: "No match found.  &#60;a onclick=\"textBoxFocus('user_name')\">
+            Please search again.&#60;/a>".html_safe
+      end
+    end
+  </code></pre>
+</p>
+<p>
+  where <code>TwitterFeed.client.user_search</code> uses the Twitter api to search for matches based on the params <code>:user_name</code> that the user entered. If there aren’t any matches found, it calls the Javascript method and once the user clicks “Please search again,” the mouse focus will go to the Twitter search box.
+</p>
