@@ -1,0 +1,47 @@
+date: 2014-02-14
+
+<h1>Busy Bee...</h1>
+
+<p>
+  For our Lister project, we had to create an app that allowed users to make lists, and add and delete list items without having to refresh the page.  Enter AJAX.
+</p>  
+<p>
+  AJAX is an acronym for Asynchronous Javascript and XML and is used to create fast, dynamic websites.
+</p>
+<p>
+  In my <code>ListIemsController</code>,
+
+  <pre><code>
+   def create
+      @list_item = ListItem.new(params.require(:list_item).permit(:to_do))
+      @list = List.find(params[:list_id])
+      @list_item.list = @list
+     
+      respond_to do |format|
+        if @list_item.save
+          format.html {
+            redirect_to @list, notice: "Your list has grown."
+          }
+          format.js
+        else
+          format.html{
+            render action: :show, notice: "Your to do item failed to save."
+          }
+        end
+      end     
+    end 
+  </code></pre>
+</p>
+<p>
+  In my <code>ListItems</code> model, I have two files: <code>create.js.erb</code> and <code>destroy.js.erb</code>.
+
+  <code>create.js.erb</code> contains:
+    <pre><code>
+      $('#list_items').append('&#60;li id=\"list_item_&#60;%= "#{@list_item.id}" %>\">&#60;%= j @list_item.to_do %>&#60;%= j link_to 'Done', { controller: 'list_items', action: 'destroy', id: @list_item.id }, remote: true %>&#60;/li>');
+      $('#list_item_to_do').val('');
+    </code></pre>
+
+  and <code>destroy.js.erb</code> contains:
+
+    <code>$('#list_item_&#60;%= params[:id] %>').remove()</code> whch takes the <code>list_item</code> with the specific <code>:id</code> from <code>params</code> and removes it.
+</p>
