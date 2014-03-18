@@ -1,0 +1,34 @@
+date: 2014-03-14
+
+<h1>Becoming friends with Rubocop</h1>
+<p>
+  For our Shipping Service API project, we were placed in groups of three and were assigned a classmate’s project that was completed in December. In addition to successfully adding a shipping features to an app, the goals of the Shipping Service project were to [1] familiarize ourselves with someone’s code (similar to a work environment where you’d jump into an existing project) and [2] refactor.
+</p>
+<p>
+  Using Rubocop, we needed to have “no more than 15 code style errors.”  When we first ran Rubocop on our assigned Congo app, it had 1,147 errors. Here were the top three errors we saw most often, what they meant, and how we fixed them.
+</p>
+<p>
+  <pre><code>
+    C: Prefer single-quoted strings when you don't need string interpolation or special symbols.
+  </code></pre>
+
+  This means that some of the code was written using double quotes, and Rubocop doesn’t like that.  Instead of going through all of the code to change them (think 700+ offenses), my colleague Shadae found a way to ignore that error by creating a <code>rubocop.yml</code> file.  Read about her time-saving method <a href="http://dae-rails.herokuapp.com/posts/37">here</a> (it reduced the errors by 25%!). 
+</p>
+<p>
+  <pre><code>C: Trailing whitespace detected.</code></pre>
+
+  To make the app run as fast as possible, Rubocop flags unnecessary spacing.  This error message just means that there’s unnecessary spacing left at the end of a line.  Fix it by deleting the space.
+</p>
+<p>
+  <pre><code>C: Method has too many lines. [25/10]</code></pre>
+
+  Rubocop likes a method to have ten lines at most.  This example had 25.  These were more time-consuming to fix, and a lot of it could or should have been placed in a model. We fixed this by first looking for methods that were repeated, and then creating a <code>before_action</code> with it. We also pulled out lines of that that weren't used or called, and lines of code that were more appropriate in a separate method.  These steps also helped address two other similar Rubocop offenses:
+
+  <pre><code>C: Line is too long. [107/79]</code></pre>
+
+  and 
+
+  <pre><code>C: Class definition is too long. [113/100]</code></pre>
+</p>
+
+
