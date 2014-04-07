@@ -1,0 +1,43 @@
+date: 2014-04-07
+
+<h1>Aliases</h1>
+<p>
+  As part of the requirements for our Capstone projects, we have to create an account using Amazon’s <strong>EC2 (Elastic Compute Cloud)</strong> service, so that we can run our app on their servers.
+</p>
+<p>
+  We had a great tutorial on virtual private servers (VPS) from Jacob Mitchell.  After setting everything up, we run it by entering a long ssh in our terminal 
+  <pre><code>
+    ssh -i [key file] ubuntu@[vps public dns]
+  </code></pre>
+</p>
+<p>
+  I decided to create an alias to make the process faster.
+</p>
+<p>
+  There are two options when making an alias: temporary and permanent.  
+</p>
+<p>
+  To make a temporary alias (valid only as long as your terminal session is open), type the following in your command line:
+</p>
+  <pre><code>
+  alias alias_name='command to execute'
+  </code></pre>
+  So in my case, I typed:
+  <pre><code>
+  alias ec2_capstone='ssh -i [key file] ubuntu@[vps public dns]'
+  </code></pre>
+<p>
+  Then push return.
+</p>
+<p>
+  For this to work, there can’t be any spaces before or after the <code>=</code> sign.  Your alias name can’t have any spaces (so use an underscore if more than one word), and we need quotes around the command to be executed.
+</p>
+<p>
+  Now I just have to type <code>ec2_capstone</code> on the command line to launch the service. Woo hoo!
+</p>
+<p>
+  To make this permanent, we need to edit <code>.bashrc</code> and <code>/etc/profile</code> by typing <code>subl ~/.bashrc</code> and <code>subl /etc/profile</code> respectively in the command line from your home directory. 
+</p>
+<p>
+  Add the code to both files, save and then close. Start a new session in terminal using your alias.  Magic!
+</p>
